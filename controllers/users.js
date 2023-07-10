@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const { BadRequestError, NotFoundError, ServerError } = require('../utils/errors.js');
+const { BadRequestError, NotFoundError, DefaultError } = require('../utils/errors.js');
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -52,7 +52,7 @@ const updateUserInfo = (req, res) => {
 
       } else {
 
-        next(new ServerError('Произошла ошибка.'))
+        next(new DefaultError('Произошла ошибка.'))
       }
     })
 };
@@ -72,7 +72,7 @@ const updateUserAvatar = (req, res) => {
 
       } else {
 
-        next(new ServerError('Произошла ошибка.'))
+        next(new DefaultError('Произошла ошибка.'))
       }
     })
 };
