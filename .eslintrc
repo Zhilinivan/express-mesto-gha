@@ -1,7 +1,5 @@
 {
   "extends": [
-    "eslint:recommended",
-    "plugin:react/recommended",
     "extends: airbnb-base"
   ],
   "rules": {
