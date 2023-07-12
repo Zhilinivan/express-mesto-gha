@@ -1,5 +1,7 @@
 const User = require('../models/user');
-const { BadRequestError, NotFoundError, DefaultError } = require('../utils/errors.js');
+const { BadRequestError } = require('../utils/errors/badrequesterror');
+const { NotFoundError } = require('../utils/errors/notfounderror');
+const { DefaultError } = require('../utils/errors/defaulterror');
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -22,59 +24,51 @@ const findUser = (req, res, next) => {
     .catch(next);
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
-  .then(user => res.status(201).send({ data: user }))
-  .catch((error) => {
-     if (error.name === 'ValidationError') {
+    .then((user) => res.status(201).send({ data: user }))
+    .catch((error) => {
+      if (error.name === 'ValidationError') {
         next(new BadRequestError('Переданы неккоректные данные.'));
-    } else {
-      next(error);
-    }
-  });
+      } else {
+        next(error);
+      }
+    });
 };
 
-const updateUserInfo = (req, res) => {
+const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .orFail(new NotFoundError('Пользователь не найден.'))
-    .then(user => res.send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch((error) => {
       if (error.name === 'ObjectIdIsNotFound') {
-        next(new NotFoundError('Пользователь не найден.'))
-
+        next(new NotFoundError('Пользователь не найден.'));
       } else if (error.name === 'ValidationError') {
-
-        next(new BadRequestError('Переданы некорректные данные.'))
-
+        next(new BadRequestError('Переданы некорректные данные.'));
       } else {
-
-        next(new DefaultError('Произошла ошибка.'))
+        next(new DefaultError('Произошла ошибка.'));
       }
-    })
+    });
 };
 
-const updateUserAvatar = (req, res) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail(new NotFoundError('Пользователь не найден.'))
-    .then(user => res.send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch((error) => {
       if (error.name === 'ObjectIdIsNotFound') {
-        next(new NotFoundError('Пользователь не найден.'))
-
+        next(new NotFoundError('Пользователь не найден.'));
       } else if (error.name === 'ValidationError') {
-
-        next(new BadRequestError('Переданы некорректные данные.'))
-
+        next(new BadRequestError('Переданы некорректные данные.'));
       } else {
-
-        next(new DefaultError('Произошла ошибка.'))
+        next(new DefaultError('Произошла ошибка.'));
       }
-    })
+    });
 };
 
 module.exports = {
@@ -82,5 +76,5 @@ module.exports = {
   createUser,
   findUser,
   updateUserInfo,
-  updateUserAvatar
+  updateUserAvatar,
 };

@@ -1,5 +1,6 @@
 const Card = require('../models/card');
-const { BadRequestError, NotFoundError, DefaultError } = require('../utils/errors.js');
+const { BadRequestError } = require('../utils/errors/badrequesterror');
+const { NotFoundError } = require('../utils/errors/notfounderror');
 
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
@@ -47,18 +48,14 @@ const dislikeCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .orFail(() => new NotFoundError('Карточка не найдена.'))
-    .then((card) => {
-      return card.remove();
-    })
+    .then((card) => card.remove())
     .catch(next);
 };
-
-
 
 module.exports = {
   getCards,
   createCard,
   deleteCard,
   likeCard,
-  dislikeCard
+  dislikeCard,
 };
