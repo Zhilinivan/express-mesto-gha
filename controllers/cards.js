@@ -1,6 +1,7 @@
 const Card = require('../models/card');
 const { BadRequestError } = require('../utils/errors/badrequesterror');
 const { NotFoundError } = require('../utils/errors/notfounderror');
+const { ForbiddenError } = require('../utils/errors/forbiddenerror');
 
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
@@ -45,13 +46,27 @@ const dislikeCard = (req, res, next) => {
     .catch(next);
 };
 
-const deleteCard = (req, res, next) => {
-  Card.findById(req.params.cardId)
-    .orFail(() => new NotFoundError('Карточка не найдена.'))
-    .then((card) => card.remove())
-    .catch(next);
-};
+function deleteCard(req, res, next) {
+  const { id: cardId } = req.params;
+  const { userId } = req.user;
 
+  Card
+    .findById({
+      _id: cardId,
+    })
+    .then((card) => {
+      if (!card) throw new NotFoundError('Карточка не найдена.');
+
+      const { owner: cardOwnerId } = card;
+      if (cardOwnerId.valueOf() !== userId) throw new ForbiddenError('Ошибка доступа.');
+
+      card
+        .remove()
+        .then(() => res.send({ data: card }))
+        .catch(next);
+    })
+    .catch(next);
+}
 module.exports = {
   getCards,
   createCard,

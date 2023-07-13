@@ -1,36 +1,73 @@
 const mongoose = require('mongoose');
-const validator = require('validator');
+const bcrypt = require('bcrypt');
+const { urlTest } = require('../utils/constants');
 
 const { Schema } = mongoose;
 
 const userSchema = new Schema(
   {
+    email: {
+      type: String,
+      required: [true, 'Поле "email" должно быть заполнено'],
+      unique: true,
+      validate: {
+        validator: (email) => /.+@.+\..+/.test(email),
+        message: 'Некорректный Email.',
+      },
+    },
+
+    password: {
+      type: String,
+      required: true,
+      select: false,
+      minlength: [8, 'Минимальная длина 8 символов.'],
+    },
 
     name: {
       type: String,
-      required: [true, 'Поле "name" должно быть заполнено'],
+      default: 'Жак-Ив Кусто',
       minlength: [2, 'Минимальная длина 2 символа.'],
       maxlength: [30, 'Максимальная длина 30 символов.'],
     },
 
     about: {
       type: String,
-      required: [true, 'Поле "about" должно быть заполнено'],
+      default: 'Исследователь',
       minlength: [2, 'Минимальная длина 2 символа.'],
       maxlength: [30, 'Максимальная длина 30 символов.'],
     },
 
     avatar: {
       type: String,
+      default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
       validate: {
-        validator: (v) => validator.isURL(v),
+        validator: (url) => urlTest.test(url),
         message: 'Некорректный URL',
       },
-      required: true,
     },
   },
+
   {
     versionKey: false,
+    statics: {
+      findUserByCredentials(email, password) {
+        return this
+          .findOne({ email })
+          .select('+password')
+          .then((user) => {
+            if (user) {
+              return bcrypt.compare(password, user.password)
+                .then((matched) => {
+                  if (matched) return user;
+
+                  return Promise.reject();
+                });
+            }
+
+            return Promise.reject();
+          });
+      },
+    },
   },
 );
 

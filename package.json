@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "lint": "npx eslint ."
+    "lint": "npx eslint . --fix"
   },
   "author": "Ivan Zhilin",
   "license": "ISC",
@@ -18,9 +18,12 @@
     "nodemon": "^3.0.1"
   },
   "dependencies": {
+    "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
+    "celebrate": "^15.0.1",
     "express": "^4.18.2",
     "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.1",
     "mongoose": "^7.3.2",
     "validator": "^13.9.0"
   }
