@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const { urlTest } = require('../utils/constants');
+const AuthError = require('../utils/errors/autherror');
 
 const { Schema } = mongoose;
 
@@ -20,7 +21,6 @@ const userSchema = new Schema(
       type: String,
       required: true,
       select: false,
-      minlength: [8, 'Минимальная длина 8 символов.'],
     },
 
     name: {
@@ -58,13 +58,14 @@ const userSchema = new Schema(
             if (user) {
               return bcrypt.compare(password, user.password)
                 .then((matched) => {
-                  if (matched) return user;
-
-                  return Promise.reject();
+                  if (!matched) {
+                    throw new AuthError('Неправильные почта или пароль.');
+                  }
+                  return user;
                 });
             }
 
-            return Promise.reject();
+            return new AuthError('Неправильные почта или пароль');
           });
       },
     },

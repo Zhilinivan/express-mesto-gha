@@ -5,7 +5,6 @@ const User = require('../models/user');
 const { secretString } = require('../utils/constants');
 const { BadRequestError } = require('../utils/errors/badrequesterror');
 const { NotFoundError } = require('../utils/errors/notfounderror');
-const { AuthError } = require('../utils/errors/autherror');
 const { DataError } = require('../utils/errors/dataerror');
 
 function regUser(req, res, next) {
@@ -53,17 +52,8 @@ function loginUser(req, res, next) {
   User
     .findUserByCredentials(email, password)
     .then(({ _id: userId }) => {
-      if (userId) {
-        const token = jwt.sign(
-          { userId },
-          secretString,
-          { expiresIn: '7d' },
-        );
-
-        return res.send({ _id: token });
-      }
-
-      throw new AuthError('Неправильные почта или пароль');
+      const token = jwt.sign({ userId }, secretString, { expiresIn: '7d' });
+      res.send({ _id: token });
     })
     .catch(next);
 }
@@ -71,9 +61,6 @@ function loginUser(req, res, next) {
 const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
-      if (users.length === 1) {
-        throw new NotFoundError('Пользователи не найдены.');
-      }
       res.send(users);
     })
     .catch(next);
@@ -115,9 +102,7 @@ const updateUserInfo = (req, res, next) => {
     .orFail(new NotFoundError('Пользователь не найден.'))
     .then((user) => res.send({ data: user }))
     .catch((error) => {
-      if (error.name === 'ObjectIdIsNotFound') {
-        next(new NotFoundError('Пользователь не найден.'));
-      } else if (error.name === 'ValidationError') {
+      if (error.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные.'));
       } else {
         next(error);
@@ -131,9 +116,7 @@ const updateUserAvatar = (req, res, next) => {
     .orFail(new NotFoundError('Пользователь не найден.'))
     .then((user) => res.send({ data: user }))
     .catch((error) => {
-      if (error.name === 'ObjectIdIsNotFound') {
-        next(new NotFoundError('Пользователь не найден.'));
-      } else if (error.name === 'ValidationError') {
+      if (error.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные.'));
       } else {
         next(error);
